@@ -21,7 +21,7 @@ TARGET_LANGS = {
     'French': 'fr',
     'Japanese': 'ja',
     'Chinese (simplified)': 'zh-CN',
-    'Korean': 'ko'
+    'Korean': 'ko',
     'Spanish': 'es',
     'German': 'de'
 }
@@ -67,7 +67,9 @@ def fix_typos(text,code):
             suggestion = spell.correction(token.lower()) or token 
             # fix bug
             # get the right original format: Uppercase or Not
-            suggestion = suggestion.title() if token.istitle() else suggestion = suggestion.upper() if token.isupper() else suggestion.fixed.append(suggestion)
+            suggestion = suggestion.title() if token.istitle() else suggestion
+            suggestion = suggestion.upper() if token.isupper() else suggestion
+            fixed.append(suggestion)
         else:
             #12$
             fixed.append(token)
@@ -118,6 +120,7 @@ def run_spellcheck(text):
     if code is None:
         return {"ok": False,
                 "error":"Cannot identify the language."}
+
     if code not in SPELL_LANGS:
         return {
             "ok": False,
@@ -137,7 +140,7 @@ st.caption("2 Apps: Translate text and Fix spelling typos")
 tab_t, tab_s = st.tabs(["Translate text", "Fix spelling typos"])
 
 with tab_t:
-    st.session_state.setdefault("rest_t", None)
+    st.session_state.setdefault("res_t", None)
 
     with st.expander("For example"):
         for ex in EXAMPLES_T:
@@ -153,7 +156,6 @@ with tab_t:
         st.session_state.res_t = run_translation(text_t,TARGET_LANGS[target])
 
     res = st.session_state.res_t
-
     if res:
         if res["ok"]:
             st.caption(f"Source: {res['source']} -> Target: {res['target']}")
@@ -161,7 +163,7 @@ with tab_t:
             if res.get('note'):
                 st.info(res['note'])
             else:
-                st.warning(res['error'])
+                st.warning(res["error"])
 
 with tab_s:
     st.session_state.setdefault('res_s', None)
@@ -181,10 +183,11 @@ with tab_s:
 
     res = st.session_state.res_s
 
-    if res["ok"]:
-        st.caption(f"Language: {res['language']}")
-        st.success(res['fixed'])
-        st.caption("Fixed spelling typos" if res['changed'] else "Does not identify any spelling typos")
+    if res: 
+        if res["ok"]:
+            st.caption(f"Language: {res['language']}")
+            st.success(res['fixed'])
+            st.caption("Fixed spelling typos" if res['changed'] else "Does not identify any spelling typos")
 
-    else:
-        st.warning(res["error"])
+        else:
+            st.warning(res["error"])
